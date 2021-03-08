@@ -1,0 +1,44 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  build-linux-gcc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build yvm
+        run: |
+          ./build.sh
+        env:
+          CC: gcc
+          CXX: g++
+  build-linux-clang:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build yvm
+        run: |
+          ./build.sh
+        env:
+          CC: clang
+          CXX: clang++
+  build-macos:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build yvm
+        run: |
+          ./build.sh
+        env:
+          CC: clang
+          CXX: clang++
+  build-windows-msvc:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+        # Runs vcvarsall to get the MSVC toolchain in PATH
+      - uses: seanmiddleditch/gha-setup-vsdevenv@master
+      - name: Build yvm
+        shell: cmd
+        run: |
+          ./build.bat
