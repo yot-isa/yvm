@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +18,7 @@ static void print_usage(FILE *stream, const char *program_name)
     fprintf(
         stream,
         "Usage:\n"
-        "    %s [FLAGS]\n"
+        "    %s [FLAGS] <YOT TYPE>\n"
         "\n"
         "FLAGS:\n"
         "    -h, --help\n"
@@ -36,9 +37,44 @@ static void print_unknown_argument(FILE *stream, const char *argument, const cha
     print_usage(stream, program_name);
 }
 
+typedef enum {
+    YOT_8,
+    YOT_16,
+    YOT_32,
+    YOT_64
+} Yot_Type;
+
+static int parse_yot_type(const char *string, Yot_Type *yot_type)
+{
+    if (strcmp(string, "yot-8") == 0) {
+        *yot_type = YOT_8;
+    } else if (strcmp(string, "yot-16") == 0) {
+        *yot_type = YOT_16;
+    } else if (strcmp(string, "yot-32") == 0) {
+        *yot_type = YOT_32;
+    } else if (strcmp(string, "yot-64") == 0) {
+        *yot_type = YOT_64;
+    } else {
+        return -1;
+    }
+
+    return 0;
+}
+
+static void print_unknown_yot_type(FILE *stream, const char *string, const char *program_name)
+{
+    fprintf(stream, "ERROR: Unknown Yot type `%s`. "
+            "Possible values are: `yot-8`, `yot-16`, `yot-32`, and `yot-64`.\n", string);
+    print_usage(stream, program_name);
+
+}
+
 int main(int argc, const char **argv)
 {
     const char *program_name = shift(&argc, &argv);
+    
+    bool is_yot_type_set = false;
+    Yot_Type yot_type;
 
     int positional_index = 0;
 
@@ -50,6 +86,14 @@ int main(int argc, const char **argv)
             exit(0);
         } else {
             switch (positional_index) {
+            case 0:
+                if (parse_yot_type(token, &yot_type)) {
+                    print_unknown_yot_type(stderr, token, program_name);
+                    exit(1);
+                } else {
+                    is_yot_type_set = true;
+                }
+                break;
             default:
                 print_unknown_argument(stderr, token, program_name);
                 exit(1);
@@ -58,6 +102,11 @@ int main(int argc, const char **argv)
         }
     }
 
-    print_usage(stderr, program_name);
+    if (!is_yot_type_set) {
+        fprintf(stderr, "ERROR: No Yot type provided.\n");
+        print_usage(stderr, program_name);
+        exit(1);
+    }
+
     exit(0);
 }
