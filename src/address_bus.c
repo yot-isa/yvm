@@ -39,3 +39,15 @@ void write(const uint64_t address, const uint8_t data)
         device->write(device, offsetted_address, data);
     }
 }
+
+void attach_device(struct Device device, struct Address_Range address_range)
+{
+    devices[devices_count] = device;
+    struct Device *device_pointer = &devices[devices_count];
+    ++devices_count;
+
+    address_range_table[address_range_table_size++] = (struct Device_Address_Range) {
+        .device = device_pointer,
+        .address_range = address_range
+    };
+}

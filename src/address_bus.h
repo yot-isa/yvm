@@ -14,9 +14,12 @@ struct Device_Address_Range {
 };
 
 struct Device devices[DEVICES_CAPACITY];
+size_t devices_count = 0;
 struct Device_Address_Range address_range_table[ADDRESS_RANGE_TABLE_CAPACITY];
 size_t address_range_table_size = 0;
 
 uint8_t read(const uint64_t address);
 
 void write(const uint64_t address, const uint8_t data);
+
+void attach_device(struct Device device, struct Address_Range address_range);
