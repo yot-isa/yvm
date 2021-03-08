@@ -1,5 +1,7 @@
 # yvm
 
+[![CI](https://github.com/karolbelina/yvm/actions/workflows/ci.yml/badge.svg)](https://github.com/karolbelina/yvm/actions/workflows/ci.yml)
+
 Mystery thing.
 
 ## Build scripts
