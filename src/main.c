@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "address_bus.c"
+
 static const char *shift(int *argc, const char ***argv)
 {
     assert(*argc > 0);
