@@ -4,16 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "address_bus.c"
-
-static const char *shift(int *argc, const char ***argv)
-{
-    assert(*argc > 0);
-    const char *result = **argv;
-    *argv += 1;
-    *argc -= 1;
-    return result;
-}
+#include "address_bus.h"
+#include "parse_utils.h"
+#include "devices/rom.h"
 
 static void print_usage(FILE *stream, const char *program_name)
 {
@@ -75,6 +68,7 @@ int main(int argc, const char **argv)
 {
     const char *program_name = shift(&argc, &argv);
     
+    struct Address_Bus address_bus = {0};
     bool is_yot_type_set = false;
     Yot_Type yot_type;
 
@@ -86,6 +80,12 @@ int main(int argc, const char **argv)
         if (strcmp(token, "-h") == 0 || strcmp(token, "--help") == 0) {
             print_usage(stderr, program_name);
             exit(0);
+        } else if (strcmp(token, "--rom") == 0) {
+            bool errored = parse_rom_args(&address_bus, &argc, &argv);
+            if (errored) {
+                exit(1);
+            }
+
         } else {
             switch (positional_index) {
             case 0:
@@ -109,6 +109,8 @@ int main(int argc, const char **argv)
         print_usage(stderr, program_name);
         exit(1);
     }
+
+    // struct Device device = address_bus.devices[0];
 
     exit(0);
 }
