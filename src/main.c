@@ -81,11 +81,7 @@ int main(int argc, const char **argv)
             print_usage(stderr, program_name);
             exit(0);
         } else if (strcmp(token, "--rom") == 0) {
-            bool errored = parse_rom_args(&address_bus, &argc, &argv);
-            if (errored) {
-                exit(1);
-            }
-
+            rom_parse_args(&address_bus, &argc, &argv);
         } else {
             switch (positional_index) {
             case 0:

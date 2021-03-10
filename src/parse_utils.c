@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "parse_utils.h"
 
@@ -11,17 +13,14 @@ const char *shift(int *argc, const char ***argv)
     return result;
 }
 
-static bool parse_address(const char* string, size_t length, size_t *output, struct Address_Parse_Error *error)
+static size_t parse_address(const char* string, size_t length)
 {
     const char *beginning = string;
     char base = 10;
 
     if (length == 0) {
-        *error = (struct Address_Parse_Error) {
-            .kind = ADDRESS_PARSE_ERROR_KIND_ADDRESS_EXPECTED,
-            .position = string
-        };
-        return true;
+        fprintf(stderr, "ERROR: address expected in address range\n");
+        exit(1);
     }
 
     if (length > 2 && string[0] == '0' && (string[1] == 'b' || string[1] == 'x')) {
@@ -42,48 +41,21 @@ static bool parse_address(const char* string, size_t length, size_t *output, str
     while (length > 0) {
         char c = *string;
 
-        switch (base) {
-        case 2:
-            if (c < '0' || c > '1') {
-                *error = (struct Address_Parse_Error) {
-                    .kind = ADDRESS_PARSE_ERROR_KIND_INVALID_CHARACTER,
-                    .position = string
-                };
-                return true;
-            }
-            result *= 2;
-            break;
-        case 10:
-            if (c < '0' || c > '9') {
-                *error = (struct Address_Parse_Error) {
-                    .kind = ADDRESS_PARSE_ERROR_KIND_INVALID_CHARACTER,
-                    .position = string
-                };
-                return true;
-            }
-            result *= 10;
-            break;
-        case 16:
-            if ((c < '0' || c > '9') && (c < 'a' || c > 'f')) {
-                *error = (struct Address_Parse_Error) {
-                    .kind = ADDRESS_PARSE_ERROR_KIND_INVALID_CHARACTER,
-                    .position = string
-                };
-                return true;
-            }
-            result <<= 4;
-            break;
+        if ((base == 2 && (c < '0' || c > '1')) ||
+                (base == 10 && (c < '0' || c > '9')) ||
+                (base == 16 && ((c < '0' || c > '9') && (c < 'a' || c > 'f')))) {
+            fprintf(stderr, "ERROR: invalid character `%c` in address range\n", c);
+            exit(1);
         }
 
+        result *= (size_t) base;
+        
         if (result < previous_result) {
-            *error = (struct Address_Parse_Error) {
-                .kind = ADDRESS_PARSE_ERROR_KIND_ADDRESS_TOO_BIG,
-                .position = beginning
-            };
-            return true;
-        } else {
-            previous_result = result;
+            fprintf(stderr, "ERROR: address `%.*s` in address range is too big\n", (int) length, beginning);
+            exit(1);
         }
+
+        previous_result = result;
 
         switch (base) {
         case 2:
@@ -102,21 +74,17 @@ static bool parse_address(const char* string, size_t length, size_t *output, str
         }
 
         if (result < previous_result) {
-            *error = (struct Address_Parse_Error) {
-                .kind = ADDRESS_PARSE_ERROR_KIND_ADDRESS_TOO_BIG,
-                .position = beginning
-            };
-            return true;
-        } else {
-            previous_result = result;
+            fprintf(stderr, "ERROR: address `%.*s` in address range is too big\n", (int) length, beginning);
+            exit(1);
         }
+
+        previous_result = result;
 
         ++string;
         --length;
     }
 
-    *output = result;
-    return false;
+    return result;
 }
 
 static const char *get_next_delimiter_position(const char *string)
@@ -135,60 +103,37 @@ static const char *get_next_end_of_string_position(const char *string)
     return string;
 }
 
-static struct Address_Range_Parse_Error translate_address_to_address_range_parse_error(const struct Address_Parse_Error error)
+struct Address_Range parse_address_range(const char *string)
 {
-    return (struct Address_Range_Parse_Error) {
-        .kind = (enum Address_Range_Parse_Error_Kind) error.kind,
-        .position = error.position
-    };
-}
+    const char *beginning = string;
 
-bool parse_address_range(const char *string, struct Address_Range *output, struct Address_Range_Parse_Error *error)
-{
-    struct Address_Parse_Error address_parse_error;
- 
     const char *address_position = string;
     const char *next_delimiter_position = get_next_delimiter_position(address_position);
     size_t address_length = (size_t) (next_delimiter_position - address_position);
-    size_t address;
 
-    bool has_errored = parse_address(address_position, address_length, &address, &address_parse_error);
-    if (has_errored) {
-        *error = translate_address_to_address_range_parse_error(address_parse_error);
-        return true;
-    }
+    size_t address = parse_address(address_position, address_length);
 
     if (*next_delimiter_position == '-') {
         string = next_delimiter_position + 1;
         const char *address2_position = string;
         const char *next_end_of_string_position = get_next_end_of_string_position(address2_position);
         size_t address2_length = (size_t) (next_end_of_string_position - address2_position);
-        size_t address2;
 
-        has_errored = parse_address(address2_position, address2_length, &address2, &address_parse_error);
-        if (has_errored) {
-            *error = translate_address_to_address_range_parse_error(address_parse_error);
-            return true;
-        }
+        size_t address2 = parse_address(address2_position, address2_length);
 
         if (address2 < address) {
-            *error = (struct Address_Range_Parse_Error) {
-                .kind = ADDRESS_RANGE_PARSE_ERROR_KIND_INVALID_ORDER,
-                .position = address_position,
-            };
-            return true;
+            fprintf(stderr, "ERROR: invalid address order in address range `%s`\n", beginning);
+            exit(1);
         }
 
-        *output = (struct Address_Range) {
+        return (struct Address_Range) {
             .start_address = address,
             .end_offset = address2 - address
         };
     } else {
-        *output = (struct Address_Range) {
+        return (struct Address_Range) {
             .start_address = address,
             .end_offset = 0
         };
     }
-
-    return false;
 }
