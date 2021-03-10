@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../error.h"
 #include "rom.h"
 #include "../parse_utils.h"
 #include "../address_bus.h"
@@ -47,16 +48,14 @@ end:
 void rom_parse_args(struct Address_Bus *address_bus, int *argc, const char ***argv)
 {
     if (*argc == 0) {
-        fprintf(stderr, "ERROR: Address range expected\n");
-        exit(1);
+        exit_with_error("Address range expected.");
     }
 
     const char *address_range_string = shift(argc, argv);
-    struct Address_Range address_range = parse_address_range(address_range_string);
+    struct Address_Range address_range = parse_address_range(address_bus, address_range_string);
 
     if (*argc == 0) {
-        fprintf(stderr, "ERROR: ROM file path expected\n");
-        exit(1);
+        exit_with_error("ROM file path expected.");
     }
     
     const char *file_path = shift(argc, argv);
@@ -64,8 +63,7 @@ void rom_parse_args(struct Address_Bus *address_bus, int *argc, const char ***ar
     rom->data = slurp_file(file_path);
 
     if (rom->data == NULL) {
-        fprintf(stderr, "ERROR: Could not read file `%s`: %s\n", file_path, strerror(errno));
-        exit(1);
+        exit_with_error("Could not read file `%s`: %s.", file_path, strerror(errno));
     }
 
     struct Device device = {
