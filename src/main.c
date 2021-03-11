@@ -10,14 +10,7 @@
 #include "parse_utils.h"
 #include "devices/rom.h"
 
-typedef enum {
-    YOT_8,
-    YOT_16,
-    YOT_32,
-    YOT_64
-} Yot_Type;
-
-static int parse_yot_type(const char *string, Yot_Type *yot_type)
+static int parse_yot_type(const char *string, enum Yot_Type *yot_type)
 {
     if (strcmp(string, "yot-8") == 0) {
         *yot_type = YOT_8;
@@ -40,7 +33,7 @@ int main(int argc, const char **argv)
     
     struct Address_Bus address_bus = {0};
     bool is_yot_type_set = false;
-    Yot_Type yot_type;
+    enum Yot_Type yot_type = {0};
 
     int positional_index = 0;
 
@@ -77,9 +70,11 @@ int main(int argc, const char **argv)
     }
 
     struct Cpu cpu = (struct Cpu) {
-        .mask = 0x00,
+        .type = yot_type,
         .ip = 0,
-        .sp = 0
+        .sp = 0,
+        .halt = false,
+        .carry = false
     };
 
     execute_next_instruction(&cpu, &address_bus);
