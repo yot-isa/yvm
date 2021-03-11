@@ -18,7 +18,7 @@ void rom_write(struct Device *device, const uint64_t address, const uint8_t data
     if (device || address || data) {};
 }
 
-static uint8_t *slurp_file(const char *file_path)
+static uint8_t *slurp_file(const char *file_path, size_t *size)
 {
     FILE *f = NULL;
     uint8_t *buffer = NULL;
@@ -27,18 +27,18 @@ static uint8_t *slurp_file(const char *file_path)
     if (f == NULL) goto end;
     if (fseek(f, 0, SEEK_END) < 0) goto end;
 
-    long size = ftell(f);
-    if (size < 0) goto end;
+    long file_size = ftell(f);
+    if (file_size < 0) goto end;
 
-    buffer = malloc((size_t) size + 1);
+    buffer = malloc((size_t) file_size);
     if (buffer == NULL) goto end;
 
     if (fseek(f, 0, SEEK_SET) < 0) goto end;
 
-    fread(buffer, 1, (size_t) size, f);
+    fread(buffer, 1, (size_t) file_size, f);
     if (ferror(f) < 0) goto end;
 
-    buffer[size] = '\0';
+    *size = (size_t) file_size;
 
 end:
     if (f) fclose(f);
@@ -53,17 +53,27 @@ void rom_parse_args(struct Address_Bus *address_bus, int *argc, const char ***ar
 
     const char *address_range_string = shift(argc, argv);
     struct Address_Range address_range = parse_address_range(address_range_string);
+    size_t address_range_length = get_address_range_length(&address_range);
 
     if (*argc == 0) {
         exit_with_error("ROM file path expected.");
     }
     
     const char *file_path = shift(argc, argv);
+    size_t file_size;
     struct Rom_Device *rom = malloc(sizeof(struct Rom_Device));
-    rom->data = slurp_file(file_path);
+    rom->data = slurp_file(file_path, &file_size);
 
     if (rom->data == NULL) {
         exit_with_error("Could not read file `%s`: %s.", file_path, strerror(errno));
+    }
+
+    if (file_size != address_range_length) {
+        exit_with_error(
+            "The file size (%zu bytes) does not match the specified address range length (%zu bytes).",
+            file_size,
+            address_range_length
+        );
     }
 
     struct Device device = {

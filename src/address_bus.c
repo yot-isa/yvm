@@ -1,6 +1,11 @@
 #include "address_bus.h"
 #include "parse_utils.h"
 
+size_t get_address_range_length(const struct Address_Range *address_range)
+{
+    return address_range->end_offset + 1;
+}
+
 static bool address_in_range(const struct Address_Bus *address_bus, const uint64_t address, size_t address_range_table_index)
 {
     struct Address_Range address_range = address_bus->address_range_table[address_range_table_index].address_range;
