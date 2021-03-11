@@ -33,6 +33,8 @@ void ram_parse_args(struct Address_Bus *address_bus, int *argc, const char ***ar
     memset(ram->data, 0, address_range_length * sizeof(uint8_t));
 
     struct Device device = {
+        .number = address_bus->devices_count,
+        .type = DEVICE_RAM,
         .contents.as_ram = ram,
         .read = ram_read,
         .write = ram_write

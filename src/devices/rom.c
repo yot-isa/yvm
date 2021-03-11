@@ -77,6 +77,8 @@ void rom_parse_args(struct Address_Bus *address_bus, int *argc, const char ***ar
     }
 
     struct Device device = {
+        .number = address_bus->devices_count,
+        .type = DEVICE_ROM,
         .contents.as_rom = rom,
         .read = rom_read,
         .write = rom_write

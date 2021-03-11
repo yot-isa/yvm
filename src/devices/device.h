@@ -7,6 +7,11 @@
 #include "ram.h"
 
 struct Device {
+    size_t number;
+    enum {
+        DEVICE_ROM,
+        DEVICE_RAM
+    } type;
     union {
         struct Rom_Device *as_rom;
         struct Ram_Device *as_ram;

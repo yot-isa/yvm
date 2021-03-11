@@ -1,5 +1,6 @@
 #include "address_bus.h"
 #include "parse_utils.h"
+#include "error.h"
 
 size_t get_address_range_length(const struct Address_Range *address_range)
 {
@@ -46,14 +47,27 @@ void write(const struct Address_Bus *address_bus, const uint64_t address, const 
     }
 }
 
+static bool address_ranges_overlap(struct Address_Range *a, struct Address_Range *b)
+{
+    return a->start_address <= b->start_address + b->end_offset && b->start_address <= a->start_address + a->end_offset;
+}
+
 void attach_device(struct Address_Bus *address_bus, struct Device device, struct Address_Range address_range)
 {
-    // TODO(#2): Check overlapping address ranges
-    // TODO: Sort address ranges in the address range table
+    for (size_t i = 0; i < address_bus->address_range_table_size; ++i) {
+        if (address_ranges_overlap(&address_range, &address_bus->address_range_table[i].address_range)) {
+            exit_with_error(
+                "Address range overlaps an already occupied address range of device #%zu.",
+                address_bus->address_range_table[i].device->number
+            );
+        }
+    }
+
     address_bus->devices[address_bus->devices_count] = device;
     struct Device *device_pointer = &(address_bus->devices[address_bus->devices_count]);
     ++address_bus->devices_count;
 
+    // TODO: Sort address ranges in the address range table
     address_bus->address_range_table[address_bus->address_range_table_size++] = (struct Device_Address_Range) {
         .device = device_pointer,
         .address_range = address_range
