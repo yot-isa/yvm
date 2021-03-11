@@ -48,7 +48,7 @@ void write(const struct Address_Bus *address_bus, const uint64_t address, const 
 
 void attach_device(struct Address_Bus *address_bus, struct Device device, struct Address_Range address_range)
 {
-    // TODO: Check overlapping address ranges
+    // TODO(#2): Check overlapping address ranges
     // TODO: Sort address ranges in the address range table
     address_bus->devices[address_bus->devices_count] = device;
     struct Device *device_pointer = &(address_bus->devices[address_bus->devices_count]);
