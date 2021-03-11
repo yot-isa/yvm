@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "device.h"
+#include "devices/device.h"
 
 struct Address_Range {
     uint64_t start_address;

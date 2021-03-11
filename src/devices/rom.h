@@ -4,10 +4,9 @@
 #include <stdbool.h>
 
 #include "../address_bus.h"
-#include "../device.h"
+#include "device.h"
 
 struct Address_Bus;
-
 struct Device;
 
 struct Rom_Device {

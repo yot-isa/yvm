@@ -45,6 +45,8 @@ int main(int argc, const char **argv)
             exit(0);
         } else if (strcmp(token, "--rom") == 0) {
             rom_parse_args(&address_bus, &argc, &argv);
+        } else if (strcmp(token, "--ram") == 0) {
+            ram_parse_args(&address_bus, &argc, &argv);
         } else {
             switch (positional_index) {
             case 0:
@@ -72,12 +74,25 @@ int main(int argc, const char **argv)
     struct Cpu cpu = (struct Cpu) {
         .type = yot_type,
         .ip = 0,
-        .sp = 0,
+        .sp = 0xc0, // TODO: Determine initial stack pointer value
         .halt = false,
         .carry = false
     };
 
-    execute_next_instruction(&cpu, &address_bus);
+    for (size_t i = 0; i < 10; ++i) {
+        execute_next_instruction(&cpu, &address_bus);
+        printf("rom: ");
+        for (size_t b = 0; b < 16; ++b) {
+            printf("%02X ", address_bus.devices[0].contents.as_rom->data[b]);
+        }
+        printf("\n");
+        
+        printf("ram: ");
+        for (size_t b = 0; b < 16; ++b) {
+            printf("%02X ", address_bus.devices[1].contents.as_ram->data[b]);
+        }
+        printf("\n");
+    }
 
     // struct Device device = address_bus.devices[0];
 

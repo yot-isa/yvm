@@ -63,7 +63,7 @@ void execute_next_instruction(struct Cpu *cpu, struct Address_Bus *address_bus)
             cpu->sp = MASKED(cpu->sp - 1);
             int b_byte = (int) read(address_bus, cpu->sp);
             int a_byte = (int) read(address_bus, MASKED(cpu->sp - 4));
-            int sum = a_byte + b_byte;
+            int sum = a_byte + b_byte + carry;
             carry = ((sum & 0x100) >> 8);
             uint8_t c_byte = (uint8_t) (sum & 0xff);
             write(address_bus, MASKED(cpu->sp - 4), c_byte);
