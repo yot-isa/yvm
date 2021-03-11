@@ -14,7 +14,7 @@ static bool address_in_range(const struct Address_Bus *address_bus, const uint64
 
 static const struct Device_Address_Range *device_address_range_search(const struct Address_Bus *address_bus, const uint64_t address)
 {
-    // TODO: Implement binary search for device address range searching
+    // TODO(#1): Implement binary search for device address range searching
     for (size_t i = 0; i < address_bus->address_range_table_size; ++i) {
         if (address_in_range(address_bus, address, i)) {
             return &(address_bus->address_range_table[i]);
