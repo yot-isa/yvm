@@ -100,7 +100,7 @@ static const char *get_next_end_of_string_position(const char *string)
     return string;
 }
 
-struct Address_Range parse_address_range(const struct Address_Bus *address_bus, const char *string)
+struct Address_Range parse_address_range(const char *string)
 {
     const char *address_position = string;
     const char *next_delimiter_position = get_next_delimiter_position(address_position);

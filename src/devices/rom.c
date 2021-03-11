@@ -52,7 +52,7 @@ void rom_parse_args(struct Address_Bus *address_bus, int *argc, const char ***ar
     }
 
     const char *address_range_string = shift(argc, argv);
-    struct Address_Range address_range = parse_address_range(address_bus, address_range_string);
+    struct Address_Range address_range = parse_address_range(address_range_string);
 
     if (*argc == 0) {
         exit_with_error("ROM file path expected.");

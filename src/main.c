@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "address_bus.h"
+#include "cpu.h"
 #include "error.h"
 #include "parse_utils.h"
 #include "devices/rom.h"
@@ -74,6 +75,14 @@ int main(int argc, const char **argv)
     if (!is_yot_type_set) {
         exit_with_error("No Yot type provided.");
     }
+
+    struct Cpu cpu = (struct Cpu) {
+        .mask = 0x00,
+        .ip = 0,
+        .sp = 0
+    };
+
+    execute_next_instruction(&cpu, &address_bus);
 
     // struct Device device = address_bus.devices[0];
 

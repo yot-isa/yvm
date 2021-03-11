@@ -8,4 +8,4 @@ LIBS=
 
 mkdir -p build/bin
 
-$CC $CFLAGS -o build/bin/yvm src/main.c src/address_bus.c src/parse_utils.c src/devices/rom.c src/error.c $LIBS
+$CC $CFLAGS -o build/bin/yvm src/main.c src/address_bus.c src/parse_utils.c src/devices/rom.c src/error.c src/cpu.c $LIBS

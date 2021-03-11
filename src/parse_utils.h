@@ -8,6 +8,6 @@
 
 const char *shift(int *argc, const char ***argv);
 
-struct Address_Range parse_address_range(const struct Address_Bus *address_bus, const char *string);
+struct Address_Range parse_address_range(const char *string);
 
 #endif // PARSE_UTILS_H_

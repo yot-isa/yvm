@@ -7,4 +7,4 @@ set LIBS=
 mkdir build
 mkdir build\bin
 
-cl.exe %CFLAGS% .\src\main.c .\src\address_bus.c .\src\parse_utils.c .\src\devices\rom.c .\src\error.c
+cl.exe %CFLAGS% .\src\main.c .\src\address_bus.c .\src\parse_utils.c .\src\devices\rom.c .\src\error.c .\src\cpu.c
