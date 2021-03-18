@@ -74,9 +74,9 @@ int main(int argc, const char **argv)
     struct Cpu cpu = (struct Cpu) {
         .type = yot_type,
         .ip = 0,
-        .sp = 0xc0, // TODO(#3): Determine initial stack pointer value
-        .halt = false,
-        .carry = false
+        .dsp = 0xc0, // TODO(#3): Determine initial stack pointer value
+        .asp = 0xf0,
+        .break_flag = false
     };
 
     for (size_t i = 0; i < 10; ++i) {
