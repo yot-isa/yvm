@@ -18,6 +18,7 @@ struct Cpu {
     uint64_t dsp;
     uint64_t asp;
     bool break_flag;
+    bool interrupt_disable_flag;
 };
 
 void execute_next_instruction(struct Cpu *cpu, struct Address_Bus *address_bus);

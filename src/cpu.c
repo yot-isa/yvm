@@ -98,7 +98,7 @@ void execute_next_instruction(struct Cpu *cpu, struct Address_Bus *address_bus)
 
     case 0x30: { // Jump to subroutine
         uint64_t new_address = 0;
-        uint64_t old_address = cpu->ip + 1;
+        uint64_t old_address = MASKED(cpu->ip + 1);
         for (size_t i = 0; i < address_size; ++i) {
             uint8_t new_byte = read(address_bus, MASKED(cpu->asp - address_size + i));
             new_address <<= 8;
@@ -125,42 +125,142 @@ void execute_next_instruction(struct Cpu *cpu, struct Address_Bus *address_bus)
     } break;
 
     case 0x32: // Swap address stack
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t a_byte = read(address_bus, MASKED(cpu->asp - i));
+            uint8_t b_byte = read(address_bus, MASKED(cpu->asp - address_size - i));
+            write(address_bus, MASKED(cpu->asp - i), b_byte);
+            write(address_bus, MASKED(cpu->asp - address_size - i), a_byte);
+        }
+        INCREMENT_IP;
         break;
 
-    case 0x40: // Push next instruction pointer
-        break;
+    case 0x40: { // Push next instruction pointer
+        uint64_t next_ip = MASKED(cpu->ip + 1);
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t next_ip_byte = next_ip && 0xff;
+            next_ip >>= 8;
+            write(address_bus, cpu->asp, next_ip_byte);
+            cpu->asp = MASKED(cpu->asp + 1);
+        }
+        INCREMENT_IP;
+    } break;
 
     case 0x41: // Address stack equal to zero
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t byte = read(address_bus, MASKED(cpu->asp - 1 - i));
+            if (byte != 0) {
+                write(address_bus, cpu->dsp, 0x00);
+                cpu->dsp = MASKED(cpu->dsp + 1);
+                INCREMENT_IP;
+                break; // TODO
+            }
+        }
+        write(address_bus, cpu->dsp, 0x01);
+        cpu->dsp = MASKED(cpu->dsp + 1);
+        INCREMENT_IP;
         break;
 
     case 0x42: // Over address stack
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t byte = read(address_bus, MASKED(cpu->asp - address_size * 2 + i));
+            write(address_bus, cpu->asp, byte);
+            cpu->asp = MASKED(cpu->asp + 1);
+        }
+        INCREMENT_IP;
         break;
 
-    case 0x50: // Push stack pointer
-        break;
+    case 0x50: { // Push data stack pointer
+        uint64_t dsp = cpu->dsp;
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t dsp_byte = dsp && 0xff;
+            dsp >>= 8;
+            write(address_bus, cpu->asp, dsp_byte);
+            cpu->asp = MASKED(cpu->asp + 1);
+        }
+        INCREMENT_IP;
+    } break;
 
-    case 0x51: // Address stack not equal to zero
-        break;
+    case 0x51: { // Address stack not equal to zero
+        bool result = false;
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t byte = read(address_bus, MASKED(cpu->asp - 1 - i));
+            if (byte != 0) {
+                result = true;
+            }
+        }
+        write(address_bus, cpu->dsp, (uint8_t) result);
+        cpu->dsp = MASKED(cpu->dsp + 1);
+        INCREMENT_IP;
+    } break;
 
     case 0x52: // Rotate address stack
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t a_byte = read(address_bus, MASKED(cpu->asp - address_size * 3 + i));
+            uint8_t b_byte = read(address_bus, MASKED(cpu->asp - address_size * 2 + i));
+            uint8_t c_byte = read(address_bus, MASKED(cpu->asp - address_size + i));
+            write(address_bus, MASKED(cpu->asp - address_size * 3 + i), c_byte);
+            write(address_bus, MASKED(cpu->asp - address_size * 2 + i), a_byte);
+            write(address_bus, MASKED(cpu->asp - address_size + i), b_byte);
+        }
+        INCREMENT_IP;
         break;
 
     case 0x60: // Set interrupt disable
+        cpu->interrupt_disable_flag = true;
+        INCREMENT_IP;
         break;
 
     case 0x61: // Address stack greater than
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t a_byte = read(address_bus, MASKED(cpu->asp - address_size * 2 + i));
+            uint8_t b_byte = read(address_bus, MASKED(cpu->asp - address_size + i));
+            if (a_byte > b_byte) { 
+                write(address_bus, cpu->dsp, 0x01);
+                cpu->dsp = MASKED(cpu->dsp + 1);
+                INCREMENT_IP;
+                break; // TODO
+            }
+        }
+        write(address_bus, cpu->dsp, 0x00);
+        cpu->dsp = MASKED(cpu->dsp + 1);
+        INCREMENT_IP;
         break;
 
     case 0x62: // Counter-rotate address stack
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t a_byte = read(address_bus, MASKED(cpu->asp - address_size * 3));
+            uint8_t b_byte = read(address_bus, MASKED(cpu->asp - address_size * 2));
+            uint8_t c_byte = read(address_bus, MASKED(cpu->asp - address_size));
+            write(address_bus, MASKED(cpu->asp - address_size * 3), b_byte);
+            write(address_bus, MASKED(cpu->asp - address_size * 2), c_byte);
+            write(address_bus, MASKED(cpu->asp - address_size), a_byte);
+        }
+        INCREMENT_IP;
         break;
 
     case 0x70: // Clear interrupt disable
+        cpu->interrupt_disable_flag = false;
         break;
 
     case 0x71: // Address stack less than
+        // aaaabbbb
+        for (size_t i = 0; i < address_size; ++i) {
+            uint8_t a_byte = read(address_bus, MASKED(cpu->asp - address_size * 2 + i));
+            uint8_t b_byte = read(address_bus, MASKED(cpu->asp - address_size + i));
+            if (a_byte < b_byte) { 
+                write(address_bus, cpu->dsp, 0x01);
+                cpu->dsp = MASKED(cpu->dsp + 1);
+                INCREMENT_IP;
+                break; // TODO
+            }
+        }
+        write(address_bus, cpu->dsp, 0x00);
+        cpu->dsp = MASKED(cpu->dsp + 1);
+        INCREMENT_IP;
         break;
 
     case 0x72: // Extension
+        INCREMENT_IP;
         break;
 
     default:
