@@ -71,15 +71,10 @@ int main(int argc, const char **argv)
         exit_with_error("No Yot type provided.");
     }
 
-    struct Cpu cpu = (struct Cpu) {
-        .type = yot_type,
-        .ip = 0,
-        .dsp = 0xc0, // TODO(#3): Determine initial stack pointer value
-        .asp = 0xf0,
-        .break_flag = false
-    };
+    struct Cpu cpu;
+    cpu_initialize(&cpu, &address_bus, yot_type);
 
-    for (size_t i = 0; i < 10; ++i) {
+    while (!cpu.break_flag) {
         execute_next_instruction(&cpu, &address_bus);
         printf("rom: ");
         for (size_t b = 0; b < 16; ++b) {

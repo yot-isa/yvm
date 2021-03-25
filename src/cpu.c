@@ -5,6 +5,35 @@
 #define MASKED(x) ((x) & (uint64_t[]){ 0xff, 0xffff, 0xffffffff, 0xffffffffffffffff }[cpu->type])
 #define INCREMENT_IP cpu->ip = MASKED(cpu->ip + 1)
 
+void cpu_initialize(struct Cpu *cpu, struct Address_Bus *address_bus, enum Yot_Type yot_type)
+{
+    size_t address_size = (size_t) 1 << cpu->type;
+    
+    uint64_t dsp = 0;
+    for (size_t i = 0; i < address_size; ++i) {
+        uint8_t byte = read(address_bus, i);
+        dsp = (dsp << 8) | byte;
+    }
+    uint64_t asp = 0;
+    for (size_t i = 0; i < address_size; ++i) {
+        uint8_t byte = read(address_bus, address_size - 1 + i);
+        asp = (asp << 8) | byte;
+    }
+    uint64_t ip = 0;
+    for (size_t i = 0; i < address_size; ++i) {
+        uint8_t byte = read(address_bus, address_size * 2 - 1 + i);
+        ip = (ip << 8) | byte;
+    }
+
+    *cpu = (struct Cpu) {
+        .type = yot_type,
+        .ip = ip,
+        .dsp = dsp,
+        .asp = asp,
+        .break_flag = false
+    };
+}
+
 void execute_next_instruction(struct Cpu *cpu, struct Address_Bus *address_bus)
 {
     uint8_t instruction = read(address_bus, cpu->ip);

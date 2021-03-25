@@ -21,6 +21,7 @@ struct Cpu {
     bool interrupt_disable_flag;
 };
 
+void cpu_initialize(struct Cpu *cpu, struct Address_Bus *address_bus, enum Yot_Type yot_type);
 void execute_next_instruction(struct Cpu *cpu, struct Address_Bus *address_bus);
 
 #endif // CPU_H_
