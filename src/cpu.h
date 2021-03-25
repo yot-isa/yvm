@@ -15,9 +15,10 @@ enum Yot_Type {
 struct Cpu {
     enum Yot_Type type;
     uint64_t ip;
-    uint64_t sp;
-    bool halt;
-    bool carry;
+    uint64_t dsp;
+    uint64_t asp;
+    bool break_flag;
+    bool interrupt_disable_flag;
 };
 
 void execute_next_instruction(struct Cpu *cpu, struct Address_Bus *address_bus);
