@@ -74,17 +74,21 @@ int main(int argc, const char **argv)
     struct Cpu cpu;
     cpu_initialize(&cpu, &address_bus, yot_type);
 
-    while (!cpu.break_flag) {
+    size_t ROM_SIZE = get_address_range_length(&address_bus.address_range_table[0].address_range);
+    size_t INITIAL_DSP = cpu.dsp;
+    size_t INITIAL_ASP = cpu.asp;
+    size_t instruction_count = 0;
+    while (!cpu.break_flag && instruction_count < 100) {
         execute_next_instruction(&cpu, &address_bus);
-        printf("rom: ");
-        for (size_t b = 0; b < 16; ++b) {
-            printf("%02X ", address_bus.devices[0].contents.as_rom->data[b]);
+        instruction_count += 1;
+
+        printf("  ");
+        for (size_t b = 0; b < cpu.dsp - INITIAL_DSP; ++b) {
+            printf("%02X ", address_bus.devices[1].contents.as_ram->data[b + INITIAL_DSP - ROM_SIZE]);
         }
-        printf("\n");
-        
-        printf("ram: ");
-        for (size_t b = 0; b < 16; ++b) {
-            printf("%02X ", address_bus.devices[1].contents.as_ram->data[b]);
+        printf("; ");
+        for (size_t b = 0; b < cpu.asp - INITIAL_ASP; ++b) {
+            printf("%02X ", address_bus.devices[1].contents.as_ram->data[b + INITIAL_ASP - ROM_SIZE]);
         }
         printf("\n");
     }
