@@ -78,7 +78,7 @@ int main(int argc, const char **argv)
     size_t INITIAL_DSP = cpu.dsp;
     size_t INITIAL_ASP = cpu.asp;
     size_t instruction_count = 0;
-    while (!cpu.break_flag && instruction_count < 100) {
+    while (!cpu.break_flag && instruction_count < 1000) {
         execute_next_instruction(&cpu, &address_bus);
         instruction_count += 1;
 
