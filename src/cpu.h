@@ -15,8 +15,8 @@ enum Yot_Type {
 struct Cpu {
     enum Yot_Type type;
     uint64_t ip;
-    uint64_t dsp;
-    uint64_t asp;
+    uint64_t sp;
+    uint64_t irp;
     bool break_flag;
     bool interrupt_disable_flag;
 };

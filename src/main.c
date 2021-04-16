@@ -75,20 +75,15 @@ int main(int argc, const char **argv)
     cpu_initialize(&cpu, &address_bus, yot_type);
 
     size_t ROM_SIZE = get_address_range_length(&address_bus.address_range_table[0].address_range);
-    size_t INITIAL_DSP = cpu.dsp;
-    size_t INITIAL_ASP = cpu.asp;
+    size_t INITIAL_SP = cpu.sp;
     size_t instruction_count = 0;
     while (!cpu.break_flag && instruction_count < 1000) {
         execute_next_instruction(&cpu, &address_bus);
         instruction_count += 1;
 
         printf("  ");
-        for (size_t b = 0; b < cpu.dsp - INITIAL_DSP; ++b) {
-            printf("%02X ", address_bus.devices[1].contents.as_ram->data[b + INITIAL_DSP - ROM_SIZE]);
-        }
-        printf("; ");
-        for (size_t b = 0; b < cpu.asp - INITIAL_ASP; ++b) {
-            printf("%02X ", address_bus.devices[1].contents.as_ram->data[b + INITIAL_ASP - ROM_SIZE]);
+        for (size_t b = 0; b < cpu.sp - INITIAL_SP; ++b) {
+            printf("%02X ", address_bus.devices[1].contents.as_ram->data[b + INITIAL_SP - ROM_SIZE]);
         }
         printf("\n");
     }
