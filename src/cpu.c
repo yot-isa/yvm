@@ -13,7 +13,7 @@ void cpu_initialize(struct Cpu *cpu, struct Address_Bus *address_bus, enum Yot_T
     }
     uint64_t ip = 0;
     for (size_t i = 0; i < address_size; ++i) {
-        uint8_t byte = read(address_bus, address_size * 2 + i);
+        uint8_t byte = read(address_bus, address_size + i);
         ip = (ip << 8) | byte;
     }
 
@@ -101,9 +101,9 @@ void execute_next_instruction(struct Cpu *cpu, struct Address_Bus *address_bus)
     case 0x51: { // Insert
         size_t offset = (size_t) read(address_bus, MASKED(cpu->sp - 1));
         uint8_t byte = read(address_bus, MASKED(cpu->sp - 2));
-        for (size_t i = 0; i < offset + 2; ++i) {
-            uint8_t temp = read(address_bus, MASKED(cpu->sp - 3 - offset + i));
-            write(address_bus, MASKED(cpu->sp - 3 - offset + i), byte);
+        for (size_t i = 0; i < offset + 1; ++i) {
+            uint8_t temp = read(address_bus, MASKED(cpu->sp - 2 - offset + i));
+            write(address_bus, MASKED(cpu->sp - 2 - offset + i), byte);
             byte = temp;
         }
         cpu->sp = MASKED(cpu->sp - 1);
@@ -136,6 +136,7 @@ void execute_next_instruction(struct Cpu *cpu, struct Address_Bus *address_bus)
         GET_ADDRESS;
         DROP_ADDRESS;
         uint8_t pred = read(address_bus, MASKED(cpu->sp - 1));
+        cpu->sp = MASKED(cpu->sp - 1);
         if (pred)
             cpu->ip = address;
         else
